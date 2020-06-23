@@ -5,26 +5,28 @@ using System.Linq;
 namespace VendingMachine {
 	public class VendingMachine_app
     {
+        //Fields
         private static int money;
         private static List<Confectionery> inventory;
-
+        //Constructor
 		public VendingMachine_app()
 		{
             inventory = InventoryInit();
 		}
 
-        /// <summary>
-        /// This is the starter method for the machine
-        /// </summary>
         public void Start()
         {
 			while (true)
             {
                 inventory.OrderByDescending(x => x.Nr);
 
-                var input = VendingMachine_gui.Menu(money);
-               
+                string input = VendingMachine_gui.Menu(money);
 
+                //Get selection and item
+                string selection = input.Split().Last();
+                string itemType = input.Replace(selection, "").Trim();
+
+                PerformAction(selection, itemType);
                 if (input.StartsWith("insert"))
                 {
                     //Add to credit
@@ -132,16 +134,44 @@ namespace VendingMachine {
                     }
 
                 }
-
                 if (input.Equals("recall"))
                 {
                     //Give money back
                     Console.WriteLine("Returning " + money + " to customer");
                     money = 0;
                 }
-
             }
         }
+
+		private void PerformAction(string selection, string item)
+		{
+			switch (selection) {
+				case "insert":
+                    money += int.Parse(item);
+                    LogMessage.WriteMessage("Adding " + item + " to credit");
+                    return;
+
+                case "order":
+                    LogMessage.WriteMessage(Order(item));
+                    return;
+
+                default:
+			}
+		}
+
+		private string Order(string item)
+		{
+            Confectionery c = inventory.Find(x => x.Name == item);
+
+            if(c.Nr == 0) {
+                return ($"No more {c.Name} left");
+			}
+            if(c.Cost > money) {
+                return $"Need " + (c.Cost - money) + " more";
+            }
+
+		}
+
 		public string GetConfectionaryNames()
 		{
             string items = "";
@@ -149,17 +179,19 @@ namespace VendingMachine {
             items = items.Trim().Remove(items.Length - 2);
             return items;
 		}
-        
 		private List<Confectionery> InventoryInit()
 		{
-            return new List<Confectionery>() { new Confectionery { Name = "snickers", Nr = 5 }, 
-                                               new Confectionery { Name = "kitkat", Nr = 3 }, 
-                                               new Confectionery { Name = "milkyway", Nr = 3 } 
+            return new List<Confectionery>() { new Confectionery { Name = "snickers", Nr = 5, Cost = 20}, 
+                                               new Confectionery { Name = "kitkat", Nr = 3, Cost = 15 }, 
+                                               new Confectionery { Name = "milkyway", Nr = 3, Cost = 15 } 
                                                //Add additional Confectionaries here
             
                                                };
 		}
-
-	}
-
+        private class Confectionery {
+            public string Name { get;  set; }
+            public int Nr { get;  set; }
+            public int Cost { get; set; }
+        }
+    }
 }

@@ -13,11 +13,6 @@ namespace VendingMachine {
     /// <summary>
     /// A Confectionary object
     /// </summary>
-    public class Confectionery
-    {
-        public string Name { get; set; }
-        public int Nr { get; set; }
-
-    }
+   
 
 }

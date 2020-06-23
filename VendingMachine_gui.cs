@@ -18,5 +18,17 @@ namespace VendingMachine {
             return Console.ReadLine();
         }
 	}
+    public static class LogMessage {
+		public static void WriteMessage(string message)
+		{
+			Console.WriteLine(message);
+		}
+	}
+
+    piublic static class Logger {
+        private Logger() { }
+
+
+	}
 
 }
