@@ -19,14 +19,17 @@ namespace VendingMachine {
 			while (true)
             {
                 inventory.OrderByDescending(x => x.Nr);
-
                 string input = VendingMachine_gui.Menu(money);
 
                 //Get selection and item
-                string selection = input.Split().Last();
-                string itemType = input.Replace(selection, "").Trim();
+                string itemType = input.Split().Last();
+                string selection = input.Replace(itemType, "").Trim();
 
                 PerformAction(selection, itemType);
+
+                #region Old
+
+                /*
                 if (input.StartsWith("insert"))
                 {
                     //Add to credit
@@ -140,6 +143,8 @@ namespace VendingMachine {
                     Console.WriteLine("Returning " + money + " to customer");
                     money = 0;
                 }
+                */
+                #endregion
             }
         }
 
@@ -149,30 +154,59 @@ namespace VendingMachine {
 				case "insert":
                     money += int.Parse(item);
                     LogMessage.WriteMessage("Adding " + item + " to credit");
-                    return;
+                    break;
 
                 case "order":
                     LogMessage.WriteMessage(Order(item));
-                    return;
-
+                    break;
+                case "sms order":
+                    LogMessage.WriteMessage(SmsOrder(item));
+                    break;
+                case "recall":
+                    LogMessage.WriteMessage("Returning " + money + " to customer");
+                    money = 0;
+                    break;
                 default:
+                    break;
 			}
 		}
 
-		private string Order(string item)
-		{
+        private string Order(string item)
+        {
             Confectionery c = inventory.Find(x => x.Name == item);
-
-            if(c.Nr == 0) {
-                return ($"No more {c.Name} left");
-			}
-            if(c.Cost > money) {
+            Console.WriteLine(c.Nr);
+            if (c.Nr == 0) {
+                return $"No more {c.Name} left";
+            }
+            if (c.Cost > money) {
                 return $"Need " + (c.Cost - money) + " more";
             }
 
-		}
+            int index = inventory.IndexOf(c);
+            c.Nr--;
+            int change = money - c.Cost;
+            money = 0;
+            
+            return $"Giving {c.Name} out.\n" +
+                   $"Giving {change} out in change.\n" +
+                   $"{c.Nr} {c.Name} left";
 
-		public string GetConfectionaryNames()
+
+        }
+
+        private string SmsOrder(string item)
+        {
+            Confectionery c = inventory.Find(x => x.Name == item);
+
+            if (c.Nr > 0)
+            {
+                inventory[inventory.IndexOf(c)].Nr--;
+                return $"Giving {c.Name} out.";
+            }
+            return ($"No more {c.Name} left");
+        }
+
+        public string GetConfectionaryNames()
 		{
             string items = "";
             inventory.ForEach(x => items += x.Name + ", ");
@@ -181,17 +215,24 @@ namespace VendingMachine {
 		}
 		private List<Confectionery> InventoryInit()
 		{
-            return new List<Confectionery>() { new Confectionery { Name = "snickers", Nr = 5, Cost = 20}, 
-                                               new Confectionery { Name = "kitkat", Nr = 3, Cost = 15 }, 
-                                               new Confectionery { Name = "milkyway", Nr = 3, Cost = 15 } 
+            return new List<Confectionery>() { new Confectionery( "snickers", 5, 20 ), 
+                                               new Confectionery( "kitkat", 3, 15 ), 
+                                               new Confectionery( "milkyway", 3, 15 ) 
                                                //Add additional Confectionaries here
             
                                                };
 		}
         private class Confectionery {
-            public string Name { get;  set; }
-            public int Nr { get;  set; }
-            public int Cost { get; set; }
+            public string Name { get; }
+            public int Nr { get; set; }
+            public int Cost { get;  }
+            public Confectionery(string name, int nr, int cost)
+            {
+                Name = name;
+                Nr = nr;
+                Cost = cost;
+            }
+
         }
     }
 }

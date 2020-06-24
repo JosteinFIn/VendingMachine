@@ -25,10 +25,11 @@ namespace VendingMachine {
 		}
 	}
 
+    /*
     piublic static class Logger {
         private Logger() { }
 
 
-	}
+	}*/
 
 }
