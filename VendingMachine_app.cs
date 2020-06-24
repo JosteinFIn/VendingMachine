@@ -9,24 +9,25 @@ namespace VendingMachine {
         private static int money;
         private static List<Confectionery> inventory;
         //Constructor
-		public VendingMachine_app()
-		{
-            inventory = InventoryInit();
-		}
 
         public void Start()
         {
+            inventory = AddInventory();
 			while (true)
             {
                 inventory.OrderByDescending(x => x.Nr);
                 string input = VendingMachine_gui.Menu(money);
 
+                string itemType = "";
+                string selection = "";
                 //Get selection and item
-                string itemType = input.Split().Last();
-                string selection = input.Replace(itemType, "").Trim();
+                try {
+                    itemType = input.Split().Last();
+                    selection = input.Replace(itemType, "").Trim();
+				}
+				catch (Exception) { }
 
                 PerformAction(selection, itemType);
-
                 #region Old
 
                 /*
@@ -174,24 +175,19 @@ namespace VendingMachine {
         private string Order(string item)
         {
             Confectionery c = inventory.Find(x => x.Name == item);
-            Console.WriteLine(c.Nr);
             if (c.Nr == 0) {
                 return $"No more {c.Name} left";
             }
             if (c.Cost > money) {
                 return $"Need " + (c.Cost - money) + " more";
             }
-
-            int index = inventory.IndexOf(c);
             c.Nr--;
             int change = money - c.Cost;
             money = 0;
-            
+
             return $"Giving {c.Name} out.\n" +
-                   $"Giving {change} out in change.\n" +
-                   $"{c.Nr} {c.Name} left";
-
-
+                   $"Giving {change} out in change.\n";
+                   //$"{c.Nr} {c.Name} left";
         }
 
         private string SmsOrder(string item)
@@ -200,7 +196,7 @@ namespace VendingMachine {
 
             if (c.Nr > 0)
             {
-                inventory[inventory.IndexOf(c)].Nr--;
+                c.Nr--;
                 return $"Giving {c.Name} out.";
             }
             return ($"No more {c.Name} left");
@@ -213,13 +209,14 @@ namespace VendingMachine {
             items = items.Trim().Remove(items.Length - 2);
             return items;
 		}
-		private List<Confectionery> InventoryInit()
+		private List<Confectionery> AddInventory()
 		{
-            return new List<Confectionery>() { new Confectionery( "snickers", 5, 20 ), 
+            return new List<Confectionery>() { new Confectionery( "snickers", 2, 20 ), 
                                                new Confectionery( "kitkat", 3, 15 ), 
                                                new Confectionery( "milkyway", 3, 15 ) 
                                                //Add additional Confectionaries here
-            
+                                               //.....
+                                               
                                                };
 		}
         private class Confectionery {
